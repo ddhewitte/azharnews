@@ -5,20 +5,19 @@ import './App.css'
 import { useEffect } from 'react'
 import axios from 'axios'
 import NewsCard from './components/NewsCard'
+import { useDispatch, useSelector } from "react-redux";
+import { setNews, setSearch, setSortBy, setSelected } from "./redux/newsSlice";
 
 function App() {
-  const [news, setNews] = useState([]);
-  const [selectedNews, setSelectedNews] = useState(null);
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("asc"); // asc | desc
-
+  const dispatch = useDispatch();
+  const { items, selected, search, sortBy } = useSelector((state) => state.news);
 
   const API_ENDPOINT = import.meta.env.VITE_NY_URL_ENDPOINT;
   const API_KEY = import.meta.env.VITE_NY_KEY;
 
   const handleMoreOnClick = (article) => {
     alert('ok');
-    setSelectedNews(article);
+    dispatch(setSelected(article));
   };
 
   useEffect(() => {
@@ -36,7 +35,7 @@ function App() {
             else return b.title.localeCompare(a.title);
           });
 
-          setNews(filteredData);
+          dispatch(setNews(filteredData));
 
         }catch(error){
           console.log(`Error fetching API ${error}`);
@@ -44,8 +43,7 @@ function App() {
       }
 
       fetchStories();
-      console.log(news);
-  }, [search, sortBy])
+  }, [dispatch, search, sortBy])
 
   return (
     <div className="p-4">
@@ -55,13 +53,13 @@ function App() {
           type="text"
           placeholder="Cari berita..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => dispatch(setSearch(e.target.value))}
           className="border px-2 py-1 rounded"
         />
 
         <select
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
+          onChange={(e) => dispatch(setSortBy(e.target.value))}
           className="border px-2 py-1 rounded"
         >
           <option value="asc">A-Z</option>
@@ -74,7 +72,7 @@ function App() {
       <h1 className="text-2xl font-bold mb-2">News Articles</h1>
       <div className="grid grid-cols-3 gap-4">
         
-        {news.map((val, key) => (
+        {items.map((val, key) => (
           <NewsCard
             key={key}
             title={val.title}
@@ -85,12 +83,12 @@ function App() {
       </div>
 
       {/* tampilkan detail berita kalau ada yang dipilih */}
-      {selectedNews && (
+      {selected && (
         <div className="mt-6 p-4 border rounded bg-gray-50">
-          <h2 className="text-xl font-bold">{selectedNews.title}</h2>
-          <p className="text-gray-700">{selectedNews.abstract}</p>
+          <h2 className="text-xl font-bold">{selected.title}</h2>
+          <p className="text-gray-700">{selected.abstract}</p>
           <a
-            href={selectedNews.url}
+            href={selected.url}
             target="_blank"
             rel="noreferrer"
             className="text-blue-600 underline mt-2 inline-block"
