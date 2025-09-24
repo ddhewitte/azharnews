@@ -9,6 +9,10 @@ import NewsCard from './components/NewsCard'
 function App() {
   const [news, setNews] = useState([]);
   const [selectedNews, setSelectedNews] = useState(null);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("asc"); // asc | desc
+
+
   const API_ENDPOINT = import.meta.env.VITE_NY_URL_ENDPOINT;
   const API_KEY = import.meta.env.VITE_NY_KEY;
 
@@ -22,7 +26,18 @@ function App() {
         const urlGetStories = `${API_ENDPOINT}/svc/topstories/v2/home.json?api-key=${API_KEY}`;
         try{
           const res = await axios.get(urlGetStories);
-          setNews(res.data.results);
+          
+          const filteredData = res.data.results
+          .filter((item) =>
+            item.title.toLowerCase().includes(search.toLowerCase())
+          )
+          .sort((a, b) => {
+            if (sortBy === "asc") return a.title.localeCompare(b.title);
+            else return b.title.localeCompare(a.title);
+          });
+
+          setNews(filteredData);
+
         }catch(error){
           console.log(`Error fetching API ${error}`);
         }
@@ -30,12 +45,35 @@ function App() {
 
       fetchStories();
       console.log(news);
-  }, [])
+  }, [search, sortBy])
 
   return (
     <div className="p-4">
+
+      <div className="flex gap-4 mb-4">
+        <input
+          type="text"
+          placeholder="Cari berita..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border px-2 py-1 rounded"
+        />
+
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="border px-2 py-1 rounded"
+        >
+          <option value="asc">A-Z</option>
+          <option value="desc">Z-A</option>
+        </select>
+      </div>
+
+
+
       <h1 className="text-2xl font-bold mb-2">News Articles</h1>
       <div className="grid grid-cols-3 gap-4">
+        
         {news.map((val, key) => (
           <NewsCard
             key={key}
